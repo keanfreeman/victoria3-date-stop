@@ -21,7 +21,6 @@ The +/− buttons work like the game's own: click for 1, Shift-click for 5, Ctrl
 - Built for Victoria 3 1.13.
 - Safe to add to an existing save.
 - Replaces `gui/timemanip.gui`, so it conflicts with other mods that change the time controls.
-- Multiplayer: each player sets their own stop, and it pauses the game for everyone.
 - Text is English only. Other languages show the English text.
 
 ## Manual install

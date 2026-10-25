@@ -5,6 +5,7 @@
 #   dsm_target                             target as days since 1836.1.1
 #   dsm_today_* / dsm_today                today's date (see dsm_generated_effects.txt)
 #   dsm_armed                              set while waiting for the target date
+#   dsm_armed_target / dsm_armed_year/month/day   snapshot of the target taken by Set
 #   dsm_ticking                            set while the daily check event is scheduled
 #   dsm_pause_pending                      set on the target day; the GUI pauses and clears it
 
@@ -48,7 +49,7 @@ dsm_init_target = {
 		set_variable = { name = dsm_t_year value = var:dsm_today_year }
 		set_variable = { name = dsm_t_month value = var:dsm_today_month }
 		set_variable = { name = dsm_t_day value = var:dsm_today_day }
-		dsm_day_up = yes
+		dsm_change_day = { AMOUNT = 1 }
 	}
 	dsm_compute_target = yes
 }
@@ -80,59 +81,20 @@ dsm_change_year = {
 	dsm_refresh = yes
 }
 
-dsm_month_up = {
-	change_variable = { name = dsm_t_month add = 1 }
-	if = {
-		limit = { var:dsm_t_month > 12 }
-		set_variable = { name = dsm_t_month value = 1 }
-		change_variable = { name = dsm_t_year add = 1 }
-		dsm_clamp_year = yes
-	}
-	dsm_clamp_day = yes
-	dsm_refresh = yes
-}
 
-dsm_month_down = {
-	change_variable = { name = dsm_t_month subtract = 1 }
-	if = {
-		limit = { var:dsm_t_month < 1 }
-		set_variable = { name = dsm_t_month value = 12 }
-		change_variable = { name = dsm_t_year subtract = 1 }
-		dsm_clamp_year = yes
-	}
-	dsm_clamp_day = yes
-	dsm_refresh = yes
-}
 
-dsm_day_up = {
-	dsm_compute_target_month_info = yes
-	change_variable = { name = dsm_t_day add = 1 }
-	if = {
-		limit = { var:dsm_t_day > var:dsm_t_mlen }
-		set_variable = { name = dsm_t_day value = 1 }
-		dsm_month_up = yes
-	}
-	dsm_refresh = yes
-}
 
-dsm_day_down = {
-	change_variable = { name = dsm_t_day subtract = 1 }
-	if = {
-		limit = { var:dsm_t_day < 1 }
-		# Wrap to the last day of the previous month.
-		set_variable = { name = dsm_t_day value = 1 }
-		dsm_month_down = yes
-		set_variable = { name = dsm_t_day value = var:dsm_t_mlen }
-	}
-	dsm_refresh = yes
-}
 
-# Arm the stop. The target must be in the future.
+# Arm the stop: snapshot the picked date so later picker edits don't move it.
 dsm_arm = {
-	dsm_refresh = yes
 	if = {
-		limit = { var:dsm_target > var:dsm_today }
+		limit = { dsm_target_is_future = yes }
+		dsm_refresh = yes
 		set_variable = dsm_armed
+		set_variable = { name = dsm_armed_target value = var:dsm_target }
+		set_variable = { name = dsm_armed_year value = var:dsm_t_year }
+		set_variable = { name = dsm_armed_month value = var:dsm_t_month }
+		set_variable = { name = dsm_armed_day value = var:dsm_t_day }
 		remove_variable = dsm_pause_pending
 		if = {
 			limit = { NOT = { has_variable = dsm_ticking } }
@@ -144,6 +106,10 @@ dsm_arm = {
 
 dsm_disarm = {
 	remove_variable = dsm_armed
+	remove_variable = dsm_armed_target
+	remove_variable = dsm_armed_year
+	remove_variable = dsm_armed_month
+	remove_variable = dsm_armed_day
 }
 
 # ---------------------------------------------------------------------------

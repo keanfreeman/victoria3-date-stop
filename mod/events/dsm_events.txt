@@ -11,10 +11,16 @@ date_stop.1 = {
 			remove_variable = dsm_ticking
 		}
 		else = {
-			dsm_refresh = yes
+			# Stops armed before dsm_armed_target existed (1.0.0 test builds)
 			if = {
-				limit = { var:dsm_today >= var:dsm_target }
-				remove_variable = dsm_armed
+				limit = { NOT = { has_variable = dsm_armed_target } }
+				dsm_compute_target = yes
+				set_variable = { name = dsm_armed_target value = var:dsm_target }
+			}
+			dsm_compute_today = yes
+			if = {
+				limit = { var:dsm_today >= var:dsm_armed_target }
+				dsm_disarm = yes
 				remove_variable = dsm_ticking
 				# Picked up by the auto-pause widget in gui/timemanip.gui
 				set_variable = dsm_pause_pending

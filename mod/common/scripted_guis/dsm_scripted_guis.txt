@@ -7,11 +7,7 @@ dsm_open_sgui = {
 
 dsm_arm_sgui = {
 	scope = country
-	is_valid = {
-		has_variable = dsm_target
-		has_variable = dsm_today
-		var:dsm_target > var:dsm_today
-	}
+	is_valid = { dsm_target_is_future = yes }
 	effect = { dsm_arm = yes }
 }
 
