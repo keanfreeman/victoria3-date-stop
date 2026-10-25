@@ -1,0 +1,49 @@
+﻿namespace = date_stop
+
+# Daily check. Reschedules itself every day while a stop is armed.
+date_stop.1 = {
+	type = country_event
+	hidden = yes
+
+	immediate = {
+		if = {
+			limit = { NOT = { has_variable = dsm_armed } }
+			remove_variable = dsm_ticking
+		}
+		else = {
+			dsm_refresh = yes
+			if = {
+				limit = { var:dsm_today >= var:dsm_target }
+				remove_variable = dsm_armed
+				remove_variable = dsm_ticking
+				# Picked up by the auto-pause widget in gui/timemanip.gui
+				set_variable = dsm_pause_pending
+				trigger_event = { id = date_stop.2 days = 0 popup = yes }
+			}
+			else = {
+				trigger_event = { id = date_stop.1 days = 1 }
+			}
+		}
+	}
+}
+
+# Popup on the target date. Also pauses on its own if "Pause on events" is on in the game settings.
+date_stop.2 = {
+	type = country_event
+	event_image = {
+		video = "middleeast_courtroom_upheaval"
+	}
+	on_created_soundeffect = "event:/SFX/UI/Alerts/event_appear"
+	icon = "gfx/interface/icons/event_icons/event_default.dds"
+
+	title = date_stop.2.t
+	desc = date_stop.2.d
+	flavor = date_stop.2.f
+
+	duration = 1
+
+	option = {
+		name = date_stop.2.a
+		default_option = yes
+	}
+}

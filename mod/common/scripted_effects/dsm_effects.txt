@@ -1,0 +1,265 @@
+﻿# Date Stop - scripted effects. All run in the scope of the player's country.
+#
+# Variables (on the player country):
+#   dsm_t_year / dsm_t_month / dsm_t_day   target date picked in the panel
+#   dsm_target                             target as days since 1836.1.1
+#   dsm_today_* / dsm_today                today's date (see dsm_generated_effects.txt)
+#   dsm_armed                              set while waiting for the target date
+#   dsm_ticking                            set while the daily check event is scheduled
+#   dsm_pause_pending                      set on the target day; the GUI pauses and clears it
+
+@dsm_min_year = 1836
+@dsm_max_year = 1999
+
+# Target date -> dsm_target (days since 1836.1.1). Also refreshes dsm_t_mlen.
+dsm_compute_target = {
+	dsm_compute_target_month_info = yes
+	set_variable = { name = dsm_target value = var:dsm_t_year }
+	change_variable = { name = dsm_target subtract = 1836 }
+	change_variable = { name = dsm_target multiply = 365 }
+	change_variable = { name = dsm_target add = var:dsm_t_mcum }
+	change_variable = { name = dsm_target add = var:dsm_t_day }
+	change_variable = { name = dsm_target subtract = 1 }
+}
+
+dsm_refresh = {
+	dsm_compute_today = yes
+	dsm_compute_target = yes
+}
+
+# Opening the panel: start the picker at tomorrow the first time, or when
+# nothing is armed and the picked date has already passed.
+dsm_init_target = {
+	dsm_init_rel_amount = yes
+	dsm_compute_today = yes
+	if = {
+		limit = {
+			has_variable = dsm_t_year
+			NOT = { has_variable = dsm_armed }
+		}
+		dsm_compute_target = yes
+		if = {
+			limit = { var:dsm_target <= var:dsm_today }
+			remove_variable = dsm_t_year
+		}
+	}
+	if = {
+		limit = { NOT = { has_variable = dsm_t_year } }
+		set_variable = { name = dsm_t_year value = var:dsm_today_year }
+		set_variable = { name = dsm_t_month value = var:dsm_today_month }
+		set_variable = { name = dsm_t_day value = var:dsm_today_day }
+		dsm_day_up = yes
+	}
+	dsm_compute_target = yes
+}
+
+dsm_clamp_year = {
+	if = {
+		limit = { var:dsm_t_year > @dsm_max_year }
+		set_variable = { name = dsm_t_year value = @dsm_max_year }
+	}
+	if = {
+		limit = { var:dsm_t_year < @dsm_min_year }
+		set_variable = { name = dsm_t_year value = @dsm_min_year }
+	}
+}
+
+# Day can't exceed the length of the (possibly new) month.
+dsm_clamp_day = {
+	dsm_compute_target_month_info = yes
+	if = {
+		limit = { var:dsm_t_day > var:dsm_t_mlen }
+		set_variable = { name = dsm_t_day value = var:dsm_t_mlen }
+	}
+}
+
+dsm_change_year = {
+	change_variable = { name = dsm_t_year add = $AMOUNT$ }
+	dsm_clamp_year = yes
+	dsm_clamp_day = yes
+	dsm_refresh = yes
+}
+
+dsm_month_up = {
+	change_variable = { name = dsm_t_month add = 1 }
+	if = {
+		limit = { var:dsm_t_month > 12 }
+		set_variable = { name = dsm_t_month value = 1 }
+		change_variable = { name = dsm_t_year add = 1 }
+		dsm_clamp_year = yes
+	}
+	dsm_clamp_day = yes
+	dsm_refresh = yes
+}
+
+dsm_month_down = {
+	change_variable = { name = dsm_t_month subtract = 1 }
+	if = {
+		limit = { var:dsm_t_month < 1 }
+		set_variable = { name = dsm_t_month value = 12 }
+		change_variable = { name = dsm_t_year subtract = 1 }
+		dsm_clamp_year = yes
+	}
+	dsm_clamp_day = yes
+	dsm_refresh = yes
+}
+
+dsm_day_up = {
+	dsm_compute_target_month_info = yes
+	change_variable = { name = dsm_t_day add = 1 }
+	if = {
+		limit = { var:dsm_t_day > var:dsm_t_mlen }
+		set_variable = { name = dsm_t_day value = 1 }
+		dsm_month_up = yes
+	}
+	dsm_refresh = yes
+}
+
+dsm_day_down = {
+	change_variable = { name = dsm_t_day subtract = 1 }
+	if = {
+		limit = { var:dsm_t_day < 1 }
+		# Wrap to the last day of the previous month.
+		set_variable = { name = dsm_t_day value = 1 }
+		dsm_month_down = yes
+		set_variable = { name = dsm_t_day value = var:dsm_t_mlen }
+	}
+	dsm_refresh = yes
+}
+
+# Arm the stop. The target must be in the future.
+dsm_arm = {
+	dsm_refresh = yes
+	if = {
+		limit = { var:dsm_target > var:dsm_today }
+		set_variable = dsm_armed
+		remove_variable = dsm_pause_pending
+		if = {
+			limit = { NOT = { has_variable = dsm_ticking } }
+			set_variable = dsm_ticking
+			trigger_event = { id = date_stop.1 days = 1 }
+		}
+	}
+}
+
+dsm_disarm = {
+	remove_variable = dsm_armed
+}
+
+# ---------------------------------------------------------------------------
+# Relative picker: "N days / weeks / months / years from today".
+# dsm_rel_amount holds N. The fill effects overwrite the target date fields;
+# the player still clicks Set to arm.
+# ---------------------------------------------------------------------------
+
+@dsm_max_rel_amount = 999
+
+dsm_init_rel_amount = {
+	if = {
+		limit = { NOT = { has_variable = dsm_rel_amount } }
+		set_variable = { name = dsm_rel_amount value = 1 }
+	}
+}
+
+dsm_change_rel_amount = {
+	dsm_init_rel_amount = yes
+	change_variable = { name = dsm_rel_amount add = $AMOUNT$ }
+	if = {
+		limit = { var:dsm_rel_amount < 1 }
+		set_variable = { name = dsm_rel_amount value = 1 }
+	}
+	if = {
+		limit = { var:dsm_rel_amount > @dsm_max_rel_amount }
+		set_variable = { name = dsm_rel_amount value = @dsm_max_rel_amount }
+	}
+}
+
+# dsm_target (days since 1836.1.1) -> dsm_t_year / dsm_t_month / dsm_t_day
+dsm_target_to_ymd = {
+	set_variable = { name = dsm_t_year value = @dsm_min_year }
+	set_variable = { name = dsm_t_doy value = var:dsm_target }
+	while = {
+		limit = { var:dsm_t_doy >= 365 }
+		change_variable = { name = dsm_t_doy subtract = 365 }
+		change_variable = { name = dsm_t_year add = 1 }
+	}
+	dsm_doy_to_target_md = yes
+	remove_variable = dsm_t_doy
+}
+
+# Fills the target with today + dsm_rel_amount * $DAYS_PER_UNIT$ days.
+dsm_fill_relative_days = {
+	dsm_init_rel_amount = yes
+	dsm_compute_today = yes
+	set_variable = { name = dsm_target value = var:dsm_rel_amount }
+	change_variable = { name = dsm_target multiply = $DAYS_PER_UNIT$ }
+	change_variable = { name = dsm_target add = var:dsm_today }
+	dsm_target_to_ymd = yes
+	dsm_clamp_year = yes
+	dsm_clamp_day = yes
+	dsm_refresh = yes
+}
+
+dsm_fill_relative_months = {
+	dsm_init_rel_amount = yes
+	dsm_compute_today = yes
+	set_variable = { name = dsm_t_year value = var:dsm_today_year }
+	set_variable = { name = dsm_t_month value = var:dsm_today_month }
+	set_variable = { name = dsm_t_day value = var:dsm_today_day }
+	change_variable = { name = dsm_t_month add = var:dsm_rel_amount }
+	while = {
+		limit = { var:dsm_t_month > 12 }
+		change_variable = { name = dsm_t_month subtract = 12 }
+		change_variable = { name = dsm_t_year add = 1 }
+	}
+	dsm_clamp_year = yes
+	dsm_clamp_day = yes
+	dsm_refresh = yes
+}
+
+dsm_fill_relative_years = {
+	dsm_init_rel_amount = yes
+	dsm_compute_today = yes
+	set_variable = { name = dsm_t_year value = var:dsm_today_year }
+	set_variable = { name = dsm_t_month value = var:dsm_today_month }
+	set_variable = { name = dsm_t_day value = var:dsm_today_day }
+	change_variable = { name = dsm_t_year add = var:dsm_rel_amount }
+	dsm_clamp_year = yes
+	dsm_clamp_day = yes
+	dsm_refresh = yes
+}
+
+# ---------------------------------------------------------------------------
+# Step the target by $AMOUNT$ (may be negative). Used by the +/- buttons,
+# which send 1 / 5 / 10 for click / shift-click / ctrl-click.
+# ---------------------------------------------------------------------------
+
+dsm_change_month = {
+	change_variable = { name = dsm_t_month add = $AMOUNT$ }
+	while = {
+		limit = { var:dsm_t_month > 12 }
+		change_variable = { name = dsm_t_month subtract = 12 }
+		change_variable = { name = dsm_t_year add = 1 }
+	}
+	while = {
+		limit = { var:dsm_t_month < 1 }
+		change_variable = { name = dsm_t_month add = 12 }
+		change_variable = { name = dsm_t_year subtract = 1 }
+	}
+	dsm_clamp_year = yes
+	dsm_clamp_day = yes
+	dsm_refresh = yes
+}
+
+dsm_change_day = {
+	dsm_compute_target = yes
+	change_variable = { name = dsm_target add = $AMOUNT$ }
+	if = {
+		limit = { var:dsm_target < 0 }
+		set_variable = { name = dsm_target value = 0 }
+	}
+	dsm_target_to_ymd = yes
+	dsm_clamp_year = yes
+	dsm_clamp_day = yes
+	dsm_refresh = yes
+}

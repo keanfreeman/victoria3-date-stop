@@ -1,0 +1,112 @@
+
+		### DATE STOP (mod): auto-pause. Pauses once when the script sets dsm_pause_pending.
+		widget = {
+			name = "dsm_autopause"
+			size = { 1 1 }
+			alwaystransparent = yes
+
+			state = {
+				name = dsm_do_pause
+				trigger_when = "[And( And( GetScriptedGui('dsm_pause_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ), Not( TimeKeeper.IsPaused ) ), Not( GetVariableSystem.Exists('dsm_pausing') ) )]"
+				duration = 0.01
+				on_start = "[GetVariableSystem.Set('dsm_pausing', 'true')]"
+				on_start = "[TimeKeeper.TogglePause]"
+				on_start = "[GetScriptedGui('dsm_pause_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+			}
+			state = {
+				name = dsm_clear_if_already_paused
+				trigger_when = "[And( GetScriptedGui('dsm_pause_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ), TimeKeeper.IsPaused )]"
+				duration = 0.01
+				on_start = "[GetScriptedGui('dsm_pause_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+			}
+			state = {
+				name = dsm_reset_guard
+				trigger_when = "[Not( GetScriptedGui('dsm_pause_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) )]"
+				duration = 0.01
+				on_start = "[GetVariableSystem.Clear('dsm_pausing')]"
+			}
+		}
+
+		### DATE STOP (mod): date picker panel
+		widget = {
+			name = "dsm_panel"
+			visible = "[GetVariableSystem.Exists('dsm_panel_open')]"
+			parentanchor = top|right
+			position = { -10 160 }
+			size = { 380 350 }
+			using = clickthrough_blocker
+			alwaystransparent = no
+
+			background = {
+				using = default_background
+			}
+
+			flowcontainer = {
+				direction = vertical
+				position = { 15 10 }
+				spacing = 6
+
+				text_single = {
+					text = "DSM_PANEL_TITLE"
+					using = fontsize_large
+				}
+				text_single = {
+					text = "DSM_TODAY"
+				}
+				text_single = {
+					text = "DSM_STEP_HINT"
+				}
+
+				#@STEPPER year DSM_YEAR DSM_VALUE_YEAR
+				#@STEPPER month DSM_MONTH DSM_VALUE_MONTH
+				#@STEPPER day DSM_DAY DSM_VALUE_DAY
+
+				### Relative to today
+				text_single = {
+					text = "DSM_RELATIVE_HEADER"
+				}
+				#@STEPPER rel DSM_IN DSM_VALUE_REL
+				flowcontainer = {
+					direction = horizontal
+					spacing = 4
+					button_standard = { size = { 84 24 } text = "DSM_DAYS" tooltip = "DSM_FILL_TOOLTIP" onclick = "[GetScriptedGui('dsm_fill_days_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]" }
+					button_standard = { size = { 84 24 } text = "DSM_WEEKS" tooltip = "DSM_FILL_TOOLTIP" onclick = "[GetScriptedGui('dsm_fill_weeks_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]" }
+					button_standard = { size = { 84 24 } text = "DSM_MONTHS" tooltip = "DSM_FILL_TOOLTIP" onclick = "[GetScriptedGui('dsm_fill_months_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]" }
+					button_standard = { size = { 84 24 } text = "DSM_YEARS" tooltip = "DSM_FILL_TOOLTIP" onclick = "[GetScriptedGui('dsm_fill_years_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]" }
+				}
+
+				### Status
+				text_single = {
+					visible = "[GetScriptedGui('dsm_armed_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+					text = "DSM_STATUS_ARMED"
+				}
+				text_single = {
+					visible = "[Not( GetScriptedGui('dsm_armed_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) )]"
+					text = "DSM_STATUS_IDLE"
+				}
+
+				### Actions
+				flowcontainer = {
+					direction = horizontal
+					spacing = 6
+					button_standard = {
+						size = { 90 26 }
+						text = "DSM_ARM"
+						tooltip = "DSM_ARM_TOOLTIP"
+						enabled = "[GetScriptedGui('dsm_arm_sgui').IsValid( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+						onclick = "[GetScriptedGui('dsm_arm_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+					}
+					button_standard = {
+						size = { 90 26 }
+						text = "DSM_CANCEL"
+						enabled = "[GetScriptedGui('dsm_cancel_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+						onclick = "[GetScriptedGui('dsm_cancel_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+					}
+					button_standard = {
+						size = { 90 26 }
+						text = "DSM_CLOSE"
+						onclick = "[GetVariableSystem.Clear('dsm_panel_open')]"
+					}
+				}
+			}
+		}

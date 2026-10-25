@@ -1,0 +1,150 @@
+﻿# Date Stop - scripted GUIs. Called from gui/timemanip.gui with the player country as root.
+
+dsm_open_sgui = {
+	scope = country
+	effect = { dsm_init_target = yes }
+}
+
+dsm_arm_sgui = {
+	scope = country
+	is_valid = {
+		has_variable = dsm_target
+		has_variable = dsm_today
+		var:dsm_target > var:dsm_today
+	}
+	effect = { dsm_arm = yes }
+}
+
+dsm_cancel_sgui = {
+	scope = country
+	is_shown = { has_variable = dsm_armed }
+	effect = { dsm_disarm = yes }
+}
+
+# is_shown = "the target day arrived and the GUI hasn't paused yet". The effect clears it.
+dsm_pause_sgui = {
+	scope = country
+	is_shown = { has_variable = dsm_pause_pending }
+	effect = { remove_variable = dsm_pause_pending }
+}
+
+# Used only for showing armed / not armed in the panel.
+dsm_armed_sgui = {
+	scope = country
+	is_shown = { has_variable = dsm_armed }
+}
+
+dsm_fill_days_sgui = {
+	scope = country
+	effect = { dsm_fill_relative_days = { DAYS_PER_UNIT = 1 } }
+}
+dsm_fill_weeks_sgui = {
+	scope = country
+	effect = { dsm_fill_relative_days = { DAYS_PER_UNIT = 7 } }
+}
+dsm_fill_months_sgui = {
+	scope = country
+	effect = { dsm_fill_relative_months = yes }
+}
+dsm_fill_years_sgui = {
+	scope = country
+	effect = { dsm_fill_relative_years = yes }
+}
+
+# +/- buttons: dsm_<field>_<up|down>_<step>_sgui, step 1 / 5 / 10 = click / shift / ctrl.
+dsm_year_up_1_sgui = {
+	scope = country
+	effect = { dsm_change_year = { AMOUNT = 1 } }
+}
+dsm_year_down_1_sgui = {
+	scope = country
+	effect = { dsm_change_year = { AMOUNT = -1 } }
+}
+dsm_year_up_5_sgui = {
+	scope = country
+	effect = { dsm_change_year = { AMOUNT = 5 } }
+}
+dsm_year_down_5_sgui = {
+	scope = country
+	effect = { dsm_change_year = { AMOUNT = -5 } }
+}
+dsm_year_up_10_sgui = {
+	scope = country
+	effect = { dsm_change_year = { AMOUNT = 10 } }
+}
+dsm_year_down_10_sgui = {
+	scope = country
+	effect = { dsm_change_year = { AMOUNT = -10 } }
+}
+dsm_month_up_1_sgui = {
+	scope = country
+	effect = { dsm_change_month = { AMOUNT = 1 } }
+}
+dsm_month_down_1_sgui = {
+	scope = country
+	effect = { dsm_change_month = { AMOUNT = -1 } }
+}
+dsm_month_up_5_sgui = {
+	scope = country
+	effect = { dsm_change_month = { AMOUNT = 5 } }
+}
+dsm_month_down_5_sgui = {
+	scope = country
+	effect = { dsm_change_month = { AMOUNT = -5 } }
+}
+dsm_month_up_10_sgui = {
+	scope = country
+	effect = { dsm_change_month = { AMOUNT = 10 } }
+}
+dsm_month_down_10_sgui = {
+	scope = country
+	effect = { dsm_change_month = { AMOUNT = -10 } }
+}
+dsm_day_up_1_sgui = {
+	scope = country
+	effect = { dsm_change_day = { AMOUNT = 1 } }
+}
+dsm_day_down_1_sgui = {
+	scope = country
+	effect = { dsm_change_day = { AMOUNT = -1 } }
+}
+dsm_day_up_5_sgui = {
+	scope = country
+	effect = { dsm_change_day = { AMOUNT = 5 } }
+}
+dsm_day_down_5_sgui = {
+	scope = country
+	effect = { dsm_change_day = { AMOUNT = -5 } }
+}
+dsm_day_up_10_sgui = {
+	scope = country
+	effect = { dsm_change_day = { AMOUNT = 10 } }
+}
+dsm_day_down_10_sgui = {
+	scope = country
+	effect = { dsm_change_day = { AMOUNT = -10 } }
+}
+dsm_rel_up_1_sgui = {
+	scope = country
+	effect = { dsm_change_rel_amount = { AMOUNT = 1 } }
+}
+dsm_rel_down_1_sgui = {
+	scope = country
+	effect = { dsm_change_rel_amount = { AMOUNT = -1 } }
+}
+dsm_rel_up_5_sgui = {
+	scope = country
+	effect = { dsm_change_rel_amount = { AMOUNT = 5 } }
+}
+dsm_rel_down_5_sgui = {
+	scope = country
+	effect = { dsm_change_rel_amount = { AMOUNT = -5 } }
+}
+dsm_rel_up_10_sgui = {
+	scope = country
+	effect = { dsm_change_rel_amount = { AMOUNT = 10 } }
+}
+dsm_rel_down_10_sgui = {
+	scope = country
+	effect = { dsm_change_rel_amount = { AMOUNT = -10 } }
+}
