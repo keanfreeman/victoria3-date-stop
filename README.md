@@ -25,7 +25,7 @@ The +/− buttons work like the game's own: click for 1, Shift-click for 5, Ctrl
 
 ## Manual install
 
-Copy or symlink the `mod/` folder to `Documents/Paradox Interactive/Victoria 3/mod/date-stop-mod`. On Linux that's `~/.local/share/Paradox Interactive/Victoria 3/mod/date-stop-mod`. Then enable it in the launcher.
+Copy the `mod/` folder to `Documents/Paradox Interactive/Victoria 3/mod/date-stop-mod`. On Linux that's `~/.local/share/Paradox Interactive/Victoria 3/mod/date-stop-mod`. Then enable it in the launcher. A symlink works in-game but not in the launcher.
 
 ## How it works
 
@@ -38,5 +38,6 @@ Game script can neither read the date as a number nor pause the game. The mod wo
 ## Development
 
 - `mod/` is exactly what ships.
+- `tools/install.sh` copies `mod/` into your local mod folder. Run it after each change.
 - Don't edit `mod/gui/timemanip.gui` by hand. It's the vanilla file plus the snippets in `tools/`, assembled by `python3 tools/build_gui.py`.
 - After a game patch, copy the new vanilla `game/gui/timemanip.gui` over `tools/timemanip.vanilla.gui` and rebuild.
