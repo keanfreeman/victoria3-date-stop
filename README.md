@@ -2,6 +2,8 @@
 
 A Victoria 3 mod: pick a date, and the game pauses when it arrives.
 
+**[Subscribe on the Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3827384545)**
+
 ![Date Stop](mod/thumbnail.png)
 
 ## Usage
@@ -25,7 +27,7 @@ The +/− buttons work like the game's own: click for 1, Shift-click for 5, Ctrl
 
 ## Manual install
 
-Copy the `mod/` folder to `Documents/Paradox Interactive/Victoria 3/mod/date-stop-mod`. On Linux that's `~/.local/share/Paradox Interactive/Victoria 3/mod/date-stop-mod`. Then enable it in the launcher. A symlink works in-game but not in the launcher.
+Copy the `mod/` folder to `Documents/Paradox Interactive/Victoria 3/mod/Date Stop`. On Linux that's `~/.local/share/Paradox Interactive/Victoria 3/mod/Date Stop`. Then enable it in the launcher. A symlink works in-game but not in the launcher.
 
 ## How it works
 
