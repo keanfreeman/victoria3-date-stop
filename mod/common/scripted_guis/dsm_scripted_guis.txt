@@ -5,17 +5,21 @@ dsm_open_sgui = {
 	effect = { dsm_init_target = yes }
 }
 
-dsm_arm_sgui = {
+dsm_add_sgui = {
 	scope = country
-	is_valid = { dsm_target_is_future = yes }
-	effect = { dsm_arm = yes }
+	is_valid = {
+		dsm_target_is_future = yes
+		NOT = { has_variable = dsm_s10_target }
+		NOT = { dsm_target_is_queued = yes }
+	}
+	effect = { dsm_add = yes }
 }
 
 dsm_clear_sgui = {
 	scope = country
 	is_shown = {
 		OR = {
-			has_variable = dsm_armed
+			has_variable = dsm_s1_target
 			AND = { has_variable = dsm_reason var:dsm_reason > 0 }
 			AND = { has_variable = dsm_repeat var:dsm_repeat > 0 }
 		}
@@ -28,12 +32,6 @@ dsm_pause_sgui = {
 	scope = country
 	is_shown = { has_variable = dsm_pause_pending }
 	effect = { remove_variable = dsm_pause_pending }
-}
-
-# Used only for showing armed / not armed in the panel.
-dsm_armed_sgui = {
-	scope = country
-	is_shown = { has_variable = dsm_armed }
 }
 
 dsm_fill_days_sgui = {

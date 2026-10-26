@@ -33,7 +33,7 @@
 			visible = "[GetVariableSystem.Exists('dsm_panel_open')]"
 			parentanchor = top|right
 			position = { -10 160 }
-			size = { 380 440 }
+			size = { 420 100 }
 			using = clickthrough_blocker
 			alwaystransparent = no
 
@@ -48,9 +48,15 @@
 				on_start = "[GetScriptedGui('dsm_open_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 			}
 
+			# Grows with the alarm list.
 			flowcontainer = {
 				direction = vertical
-				position = { 15 10 }
+				resizeparent = yes
+				ignoreinvisible = yes
+				margin = { 15 0 }
+				margin_top = 10
+				margin_bottom = 12
+				minimumsize = { 390 -1 }
 				spacing = 6
 
 				text_single = {
@@ -103,30 +109,16 @@
 				}
 				#@INCLUDE gui_repeat_row.gui
 
-				### Status
-				text_single = {
-					visible = "[GetScriptedGui('dsm_armed_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
-					text = "DSM_STATUS_ARMED"
-				}
-				text_single = {
-					visible = "[GetScriptedGui('dsm_armed_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
-					text = "DSM_STATUS_REASON"
-				}
-				text_single = {
-					visible = "[Not( GetScriptedGui('dsm_armed_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) )]"
-					text = "DSM_STATUS_IDLE"
-				}
-
 				### Actions
 				flowcontainer = {
 					direction = horizontal
 					spacing = 6
 					button_standard = {
 						size = { 90 26 }
-						text = "DSM_ARM"
-						tooltip = "DSM_ARM_TOOLTIP"
-						enabled = "[GetScriptedGui('dsm_arm_sgui').IsValid( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
-						onclick = "[GetScriptedGui('dsm_arm_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+						text = "DSM_ADD"
+						tooltip = "DSM_ADD_TOOLTIP"
+						enabled = "[GetScriptedGui('dsm_add_sgui').IsValid( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+						onclick = "[GetScriptedGui('dsm_add_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					}
 					button_standard = {
 						size = { 90 26 }
@@ -141,5 +133,16 @@
 						onclick = "[GetVariableSystem.Clear('dsm_panel_open')]"
 					}
 				}
+
+				### Alarm queue, soonest first
+				text_single = {
+					visible = "[Not( GetScriptedGui('dsm_queue_empty_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) )]"
+					text = "DSM_QUEUE_HEADER"
+				}
+				text_single = {
+					visible = "[GetScriptedGui('dsm_queue_empty_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+					text = "DSM_QUEUE_EMPTY"
+				}
+				#@INCLUDE gui_queue_rows.gui
 			}
 		}

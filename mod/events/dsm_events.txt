@@ -1,43 +1,34 @@
 ﻿namespace = date_stop
 
-# Daily check. Reschedules itself every day while a stop is armed.
+# Daily check. Reschedules itself every day while any alarm is queued.
 date_stop.1 = {
 	type = country_event
 	hidden = yes
 
 	immediate = {
+		dsm_migrate_armed = yes
 		if = {
-			limit = { NOT = { has_variable = dsm_armed } }
-			remove_variable = dsm_ticking
-		}
-		else = {
-			# Stops armed before dsm_armed_target existed (1.0.0 test builds)
-			if = {
-				limit = { NOT = { has_variable = dsm_armed_target } }
-				dsm_compute_target = yes
-				set_variable = { name = dsm_armed_target value = var:dsm_target }
-			}
+			limit = { has_variable = dsm_s1_target }
 			dsm_compute_today = yes
 			if = {
-				limit = { var:dsm_today >= var:dsm_armed_target }
-				dsm_fire = yes
+				limit = { var:dsm_s1_target <= var:dsm_today }
+				dsm_fire_due = yes
 				# Picked up by the auto-pause widget in gui/timemanip.gui
 				set_variable = dsm_pause_pending
 				trigger_event = { id = date_stop.2 days = 0 popup = yes }
-				# Repeating: keep checking for the next date.
-				if = {
-					limit = { has_variable = dsm_ticking }
-					trigger_event = { id = date_stop.1 days = 1 }
-				}
 			}
-			else = {
-				trigger_event = { id = date_stop.1 days = 1 }
-			}
+		}
+		if = {
+			limit = { has_variable = dsm_s1_target }
+			trigger_event = { id = date_stop.1 days = 1 }
+		}
+		else = {
+			remove_variable = dsm_ticking
 		}
 	}
 }
 
-# Popup on the target date. Also pauses on its own if "Pause on events" is on in the game settings.
+# Popup listing the alarms that fired. Also pauses on its own if "Pause on events" is on in the game settings.
 date_stop.2 = {
 	type = country_event
 	event_image = {

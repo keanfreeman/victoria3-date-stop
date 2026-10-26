@@ -1,16 +1,16 @@
 ﻿# Date Stop - scripted effects. All run in the scope of the player's country.
 #
 # Variables (on the player country):
-#   dsm_t_year / dsm_t_month / dsm_t_day   target date picked in the panel
-#   dsm_target                             target as days since 1836.1.1
+#   dsm_t_year / dsm_t_month / dsm_t_day   date picked in the panel
+#   dsm_target                             picked date as days since 1836.1.1
 #   dsm_today_* / dsm_today                today's date (see dsm_generated_effects.txt)
-#   dsm_armed                              set while waiting for the target date
-#   dsm_armed_target / dsm_armed_year/month/day   snapshot of the target taken by Set
-#   dsm_armed_anchor_day / dsm_armed_reason / dsm_armed_repeat   also snapshotted by Set
 #   dsm_reason / dsm_repeat                picker's reason id and repeat mode (see tools/gen_reasons.py)
-#   dsm_fired_reason / dsm_fired_repeat    what the popup for the stop that just fired shows
+#   dsm_s<N>_*                             alarm queue slots, soonest first (see tools/gen_queue.py)
+#   dsm_queue_count                        number of queued alarms
+#   dsm_f<K>_*                             alarms that fired today, for the popup
 #   dsm_ticking                            set while the daily check event is scheduled
-#   dsm_pause_pending                      set on the target day; the GUI pauses and clears it
+#   dsm_pause_pending                      set on an alarm's day; the GUI pauses and clears it
+#   dsm_armed*                             the single stop from 1.1.0 and earlier, moved into the queue on load
 
 @dsm_min_year = 1836
 @dsm_max_year = 1999
@@ -32,15 +32,21 @@ dsm_refresh = {
 }
 
 # Opening the panel: start the picker at tomorrow the first time, or when
-# nothing is armed and the picked date has already passed.
+# the picked date has already passed.
 dsm_init_target = {
+	dsm_migrate_armed = yes
 	dsm_init_rel_amount = yes
+	if = {
+		limit = { NOT = { has_variable = dsm_reason } }
+		set_variable = { name = dsm_reason value = 0 }
+	}
+	if = {
+		limit = { NOT = { has_variable = dsm_repeat } }
+		set_variable = { name = dsm_repeat value = 0 }
+	}
 	dsm_compute_today = yes
 	if = {
-		limit = {
-			has_variable = dsm_t_year
-			NOT = { has_variable = dsm_armed }
-		}
+		limit = { has_variable = dsm_t_year }
 		dsm_compute_target = yes
 		if = {
 			limit = { var:dsm_target <= var:dsm_today }
@@ -97,123 +103,195 @@ dsm_change_year = {
 
 
 
-# Arm the stop: snapshot the picked date so later picker edits don't move it.
-dsm_arm = {
-	if = {
-		limit = { dsm_target_is_future = yes }
-		dsm_refresh = yes
-		set_variable = dsm_armed
-		set_variable = { name = dsm_armed_target value = var:dsm_target }
-		set_variable = { name = dsm_armed_year value = var:dsm_t_year }
-		set_variable = { name = dsm_armed_month value = var:dsm_t_month }
-		set_variable = { name = dsm_armed_day value = var:dsm_t_day }
-		# Day of month to return to for monthly/yearly repeats (Jan 31 -> Feb 28 -> Mar 31).
-		set_variable = { name = dsm_armed_anchor_day value = var:dsm_t_day }
-		set_variable = { name = dsm_armed_reason value = 0 }
-		if = {
-			limit = { has_variable = dsm_reason }
-			set_variable = { name = dsm_armed_reason value = var:dsm_reason }
-		}
-		set_variable = { name = dsm_armed_repeat value = 0 }
-		if = {
-			limit = { has_variable = dsm_repeat }
-			set_variable = { name = dsm_armed_repeat value = var:dsm_repeat }
-		}
-		remove_variable = dsm_pause_pending
-		if = {
-			limit = { NOT = { has_variable = dsm_ticking } }
-			set_variable = dsm_ticking
-			trigger_event = { id = date_stop.1 days = 1 }
-		}
-	}
-}
-
-dsm_disarm = {
-	remove_variable = dsm_armed
-	remove_variable = dsm_armed_target
-	remove_variable = dsm_armed_year
-	remove_variable = dsm_armed_month
-	remove_variable = dsm_armed_day
-	remove_variable = dsm_armed_anchor_day
-	remove_variable = dsm_armed_reason
-	remove_variable = dsm_armed_repeat
-}
-
-# The armed date has arrived. Records what the popup should say, then either
-# moves the stop to the next repeat or disarms it. Returns with dsm_ticking
-# set only if another check should be scheduled.
-dsm_fire = {
-	set_variable = { name = dsm_fired_reason value = 0 }
-	if = {
-		limit = { has_variable = dsm_armed_reason }
-		set_variable = { name = dsm_fired_reason value = var:dsm_armed_reason }
-	}
-	set_variable = { name = dsm_fired_repeat value = 0 }
+# Add button: queue the picked date with the picker's reason and repeat.
+dsm_add = {
 	if = {
 		limit = {
-			has_variable = dsm_armed_repeat
-			var:dsm_armed_repeat > 0
+			dsm_target_is_future = yes
+			NOT = { has_variable = dsm_s10_target }
+			NOT = { dsm_target_is_queued = yes }
 		}
-		dsm_advance_repeat = yes
-	}
-	if = {
-		limit = { var:dsm_fired_repeat = 0 }
-		dsm_disarm = yes
-		remove_variable = dsm_ticking
+		dsm_refresh = yes
+		set_variable = { name = dsm_snew_target value = var:dsm_target }
+		set_variable = { name = dsm_snew_year value = var:dsm_t_year }
+		set_variable = { name = dsm_snew_month value = var:dsm_t_month }
+		set_variable = { name = dsm_snew_day value = var:dsm_t_day }
+		# Day of month to return to for monthly/yearly repeats (Jan 31 -> Feb 28 -> Mar 31).
+		set_variable = { name = dsm_snew_anchor value = var:dsm_t_day }
+		set_variable = { name = dsm_snew_reason value = 0 }
+		if = {
+			limit = { has_variable = dsm_reason }
+			set_variable = { name = dsm_snew_reason value = var:dsm_reason }
+		}
+		set_variable = { name = dsm_snew_repeat value = 0 }
+		if = {
+			limit = { has_variable = dsm_repeat }
+			set_variable = { name = dsm_snew_repeat value = var:dsm_repeat }
+		}
+		dsm_queue_add_new = yes
 	}
 }
 
-# Moves the armed date forward by one repeat period. Borrows the picker's
-# date variables for the arithmetic and puts them back afterwards.
-dsm_advance_repeat = {
-	set_variable = { name = dsm_saved_t_year value = var:dsm_t_year }
-	set_variable = { name = dsm_saved_t_month value = var:dsm_t_month }
-	set_variable = { name = dsm_saved_t_day value = var:dsm_t_day }
+# Queues the staged alarm (dsm_snew_*) and makes sure the daily check runs.
+dsm_queue_add_new = {
+	dsm_new_assign_num = yes
+	dsm_queue_insert_new = yes
+	dsm_slot_remove = { N = new }
+	dsm_queue_refresh = yes
+	if = {
+		limit = { NOT = { has_variable = dsm_ticking } }
+		set_variable = dsm_ticking
+		trigger_event = { id = date_stop.1 days = 1 }
+	}
+}
 
-	set_variable = { name = dsm_t_year value = var:dsm_armed_year }
-	set_variable = { name = dsm_t_month value = var:dsm_armed_month }
-	set_variable = { name = dsm_t_day value = var:dsm_armed_day }
+# 1.1.0 and earlier had a single stop. Move it into the queue.
+dsm_migrate_armed = {
 	if = {
-		limit = { var:dsm_armed_repeat = 1 }
-		dsm_change_day = { AMOUNT = 7 }
+		limit = { has_variable = dsm_armed }
+		if = {
+			limit = { has_variable = dsm_armed_target }
+			set_variable = { name = dsm_snew_target value = var:dsm_armed_target }
+			set_variable = { name = dsm_snew_year value = var:dsm_armed_year }
+			set_variable = { name = dsm_snew_month value = var:dsm_armed_month }
+			set_variable = { name = dsm_snew_day value = var:dsm_armed_day }
+			set_variable = { name = dsm_snew_anchor value = var:dsm_armed_day }
+			if = {
+				limit = { has_variable = dsm_armed_anchor_day }
+				set_variable = { name = dsm_snew_anchor value = var:dsm_armed_anchor_day }
+			}
+			set_variable = { name = dsm_snew_reason value = 0 }
+			if = {
+				limit = { has_variable = dsm_armed_reason }
+				set_variable = { name = dsm_snew_reason value = var:dsm_armed_reason }
+			}
+			set_variable = { name = dsm_snew_repeat value = 0 }
+			if = {
+				limit = { has_variable = dsm_armed_repeat }
+				set_variable = { name = dsm_snew_repeat value = var:dsm_armed_repeat }
+			}
+			dsm_queue_add_new = yes
+		}
+		remove_variable = dsm_armed
+		remove_variable = dsm_armed_target
+		remove_variable = dsm_armed_year
+		remove_variable = dsm_armed_month
+		remove_variable = dsm_armed_day
+		remove_variable = dsm_armed_anchor_day
+		remove_variable = dsm_armed_reason
+		remove_variable = dsm_armed_repeat
+		remove_variable = dsm_fired_reason
+		remove_variable = dsm_fired_repeat
 	}
-	else_if = {
-		limit = { var:dsm_armed_repeat = 2 }
-		dsm_change_month = { AMOUNT = 1 }
+}
+
+# Fires every alarm that is due (dsm_today must be current). Each one is
+# recorded for the popup; repeating ones go back in the queue at their next
+# date, the rest are deleted. Sets dsm_f1_reason if anything fired.
+dsm_fire_due = {
+	dsm_fired_reset = yes
+	while = {
+		limit = {
+			has_variable = dsm_s1_target
+			var:dsm_s1_target <= var:dsm_today
+		}
+		dsm_slot_copy = { FROM = 1 TO = new }
+		dsm_queue_delete_1 = yes
+		dsm_fired_push = yes
+		if = {
+			limit = { var:dsm_snew_repeat > 0 }
+			dsm_advance_new = yes
+			if = {
+				limit = { has_variable = dsm_snew_target }
+				dsm_fired_set_next = yes
+				dsm_queue_insert_new = yes
+			}
+			else = {
+				dsm_fired_set_ended = yes
+			}
+		}
+		dsm_slot_remove = { N = new }
 	}
-	else = {
-		dsm_change_year = { AMOUNT = 1 }
+	dsm_queue_refresh = yes
+}
+
+# Moves the staged alarm forward by its repeat period until it's after today.
+# Removes dsm_snew_target if it can't move (stuck at the last supported year).
+# Borrows the picker's date variables for the arithmetic and puts them back afterwards.
+dsm_advance_new = {
+	if = {
+		limit = { has_variable = dsm_t_year }
+		set_variable = { name = dsm_saved_t_year value = var:dsm_t_year }
+		set_variable = { name = dsm_saved_t_month value = var:dsm_t_month }
+		set_variable = { name = dsm_saved_t_day value = var:dsm_t_day }
+	}
+	set_variable = { name = dsm_advancing value = 1 }
+
+	while = {
+		limit = {
+			var:dsm_advancing = 1
+			var:dsm_snew_target <= var:dsm_today
+		}
+		set_variable = { name = dsm_t_year value = var:dsm_snew_year }
+		set_variable = { name = dsm_t_month value = var:dsm_snew_month }
+		set_variable = { name = dsm_t_day value = var:dsm_snew_day }
+		if = {
+			limit = { var:dsm_snew_repeat = 1 }
+			dsm_change_day = { AMOUNT = 7 }
+		}
+		else_if = {
+			limit = { var:dsm_snew_repeat = 2 }
+			dsm_change_month = { AMOUNT = 1 }
+		}
+		else = {
+			dsm_change_year = { AMOUNT = 1 }
+		}
+		if = {
+			limit = { var:dsm_snew_repeat >= 2 }
+			set_variable = { name = dsm_t_day value = var:dsm_snew_anchor }
+			dsm_clamp_day = yes
+			dsm_refresh = yes
+		}
+		if = {
+			limit = { var:dsm_target > var:dsm_snew_target }
+			set_variable = { name = dsm_snew_target value = var:dsm_target }
+			set_variable = { name = dsm_snew_year value = var:dsm_t_year }
+			set_variable = { name = dsm_snew_month value = var:dsm_t_month }
+			set_variable = { name = dsm_snew_day value = var:dsm_t_day }
+		}
+		else = {
+			set_variable = { name = dsm_advancing value = 0 }
+		}
 	}
 	if = {
-		limit = { var:dsm_armed_repeat >= 2 }
-		set_variable = { name = dsm_t_day value = var:dsm_armed_anchor_day }
-		dsm_clamp_day = yes
+		limit = { var:dsm_advancing = 0 }
+		remove_variable = dsm_snew_target
+	}
+
+	if = {
+		limit = { has_variable = dsm_saved_t_year }
+		set_variable = { name = dsm_t_year value = var:dsm_saved_t_year }
+		set_variable = { name = dsm_t_month value = var:dsm_saved_t_month }
+		set_variable = { name = dsm_t_day value = var:dsm_saved_t_day }
+		remove_variable = dsm_saved_t_year
+		remove_variable = dsm_saved_t_month
+		remove_variable = dsm_saved_t_day
 		dsm_refresh = yes
 	}
-
-	# Only keep repeating if the next date is actually later (not stuck at the year cap).
-	if = {
-		limit = { var:dsm_target > var:dsm_armed_target }
-		set_variable = { name = dsm_armed_target value = var:dsm_target }
-		set_variable = { name = dsm_armed_year value = var:dsm_t_year }
-		set_variable = { name = dsm_armed_month value = var:dsm_t_month }
-		set_variable = { name = dsm_armed_day value = var:dsm_t_day }
-		set_variable = { name = dsm_fired_repeat value = var:dsm_armed_repeat }
+	else = {
+		# The picker was never opened: leave it unset so it starts at tomorrow.
+		remove_variable = dsm_t_year
+		remove_variable = dsm_t_month
+		remove_variable = dsm_t_day
+		dsm_compute_today = yes
 	}
-
-	set_variable = { name = dsm_t_year value = var:dsm_saved_t_year }
-	set_variable = { name = dsm_t_month value = var:dsm_saved_t_month }
-	set_variable = { name = dsm_t_day value = var:dsm_saved_t_day }
-	remove_variable = dsm_saved_t_year
-	remove_variable = dsm_saved_t_month
-	remove_variable = dsm_saved_t_day
-	dsm_refresh = yes
+	remove_variable = dsm_advancing
 }
 
 # ---------------------------------------------------------------------------
 # Relative picker: "N days / weeks / months / years from today".
 # dsm_rel_amount holds N. The fill effects overwrite the target date fields;
-# the player still clicks Set to arm.
+# the player still clicks Add to queue it.
 # ---------------------------------------------------------------------------
 
 @dsm_max_rel_amount = 999
@@ -330,27 +408,19 @@ dsm_change_day = {
 	dsm_refresh = yes
 }
 
-# Reason and repeat are details of the stop, not its date, so changing them
-# applies to an armed stop straight away (the date still needs Set).
+# Reason and repeat apply to the next alarm added.
 dsm_set_reason = {
 	set_variable = { name = dsm_reason value = $ID$ }
-	if = {
-		limit = { has_variable = dsm_armed }
-		set_variable = { name = dsm_armed_reason value = $ID$ }
-	}
 }
 
 dsm_set_repeat = {
 	set_variable = { name = dsm_repeat value = $ID$ }
-	if = {
-		limit = { has_variable = dsm_armed }
-		set_variable = { name = dsm_armed_repeat value = $ID$ }
-	}
 }
 
-# Clear button: removes the stop and resets reason and repeat.
+# Clear all button: deletes every alarm and resets reason and repeat.
 dsm_clear = {
-	dsm_disarm = yes
+	dsm_queue_clear = yes
+	dsm_queue_refresh = yes
 	set_variable = { name = dsm_reason value = 0 }
 	set_variable = { name = dsm_repeat value = 0 }
 }
