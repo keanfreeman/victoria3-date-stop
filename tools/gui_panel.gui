@@ -32,7 +32,8 @@
 			name = "dsm_panel"
 			visible = "[GetVariableSystem.Exists('dsm_panel_open')]"
 			parentanchor = top|right
-			position = { -10 160 }
+			# Left of the time controls (440 wide). gen_reasons.py puts the reason picker left of this.
+			position = { -450 90 }
 			size = { 420 100 }
 			using = clickthrough_blocker
 			alwaystransparent = no

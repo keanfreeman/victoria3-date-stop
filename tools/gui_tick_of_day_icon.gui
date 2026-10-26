@@ -1,0 +1,55 @@
+	# DATE STOP (mod): vanilla tick_of_day_icon, widened to hold the clock button
+	# just left of the time-of-day icon in the weekday bar. The button lives in
+	# this small helper type rather than in `type timemanip` so it still appears
+	# when another mod replaces timemanip (e.g. Investment Queue's
+	# 00_timemanip.gui): each GUI type is taken from the first file that defines
+	# it, and those mods use this type without redefining it. Kept inside the
+	# bar's 16px height because clicks outside a parent's area don't register.
+	type tick_of_day_icon = widget {
+		size = { 33 16 }
+		parentanchor = vcenter|right
+		# The extra width mustn't block the weekday bar; the button and icons still take input.
+		alwaystransparent = yes
+
+		button_icon_round = {
+			name = "dsm_toggle_button"
+			size = { 16 16 }
+			parentanchor = vcenter|left
+			tooltip = "DSM_BUTTON_TOOLTIP"
+			onclick = "[GetScriptedGui('dsm_open_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+			onclick = "[GetVariableSystem.Toggle('dsm_panel_open')]"
+
+			blockoverride "icon" {
+				texture = "gfx/interface/icons/generic_icons/clock.dds"
+			}
+		}
+
+		icon = {
+			size = { 13 13 }
+			parentanchor = vcenter|right
+			visible = "[EqualTo_int32(TimeKeeper.GetTickOfDay,'(int32)0')]"
+			tooltip = "HOUR_NIGHT"
+			texture = "gfx/interface/icons/generic_icons/timekeeper_night.dds"
+		}
+		icon = {
+			size = { 13 13 }
+			parentanchor = vcenter|right
+			visible = "[EqualTo_int32(TimeKeeper.GetTickOfDay,'(int32)1')]"
+			tooltip = "HOUR_MORNING"
+			texture = "gfx/interface/icons/generic_icons/timekeeper_morning.dds"
+		}
+		icon = {
+			size = { 13 13 }
+			parentanchor = vcenter|right
+			visible = "[EqualTo_int32(TimeKeeper.GetTickOfDay,'(int32)2')]"
+			tooltip = "HOUR_AFTERNOON"
+			texture = "gfx/interface/icons/generic_icons/timekeeper_afternoon.dds"
+		}
+		icon = {
+			size = { 13 13 }
+			parentanchor = vcenter|right
+			visible = "[EqualTo_int32(TimeKeeper.GetTickOfDay,'(int32)3')]"
+			tooltip = "HOUR_EVENING"
+			texture = "gfx/interface/icons/generic_icons/timekeeper_evening.dds"
+		}
+	}

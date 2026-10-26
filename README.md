@@ -8,7 +8,7 @@ A Victoria 3 mod: set alarms for future dates, and the game pauses when each one
 
 ## Usage
 
-1. Click the clock button at the bottom-right of the date box (top-right of the screen).
+1. Click the clock button in the weekday bar under the date (top-right of the screen).
 2. Choose a date, either:
    - directly with the Year / Month / Day buttons, or
    - relative to today: set a number under **In**, then click **Days**, **Weeks**, **Months** or **Years**.
@@ -28,7 +28,7 @@ The +/− buttons work like the game's own: click for 1, Shift-click for 5, Ctrl
 
 - Built for Victoria 3 1.13.
 - Safe to add to an existing save. A stop set with 1.1.0 or earlier moves into the queue.
-- Replaces `gui/timemanip.gui`, so it conflicts with other mods that change the time controls.
+- Works with mods that replace the time controls in their own file, such as [Investment Queue](https://steamcommunity.com/sharedfiles/filedetails/?id=3529774644). It still replaces `gui/timemanip.gui`, and with it the `tick_of_day_icon` and `pause_border` GUI types, so it conflicts with mods that replace that file or redefine those types.
 - Text is English only. Other languages show the English text.
 
 ## Manual install
@@ -51,4 +51,5 @@ Game script can neither read the date as a number nor pause the game. The mod wo
 - `tools/install.sh` copies `mod/` into your local mod folder. Run it after each change.
 - After editing the reason list, run `python3 tools/gen_reasons.py`, `python3 tools/gen_queue.py`, then `python3 tools/build_gui.py`.
 - Don't edit `mod/gui/timemanip.gui` by hand. It's the vanilla file plus the snippets in `tools/`, assembled by `python3 tools/build_gui.py`.
+- `type timemanip` itself is left vanilla. Each GUI type is taken from the first file that defines it, so mods like Investment Queue (`00_timemanip.gui`) win it. The clock button is in the small `tick_of_day_icon` type instead, and the panel in `pause_border`, which those mods use but don't redefine.
 - After a game patch, copy the new vanilla `game/gui/timemanip.gui` over `tools/timemanip.vanilla.gui` and rebuild.
