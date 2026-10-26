@@ -11,10 +11,16 @@ dsm_arm_sgui = {
 	effect = { dsm_arm = yes }
 }
 
-dsm_cancel_sgui = {
+dsm_clear_sgui = {
 	scope = country
-	is_shown = { has_variable = dsm_armed }
-	effect = { dsm_disarm = yes }
+	is_shown = {
+		OR = {
+			has_variable = dsm_armed
+			AND = { has_variable = dsm_reason var:dsm_reason > 0 }
+			AND = { has_variable = dsm_repeat var:dsm_repeat > 0 }
+		}
+	}
+	effect = { dsm_clear = yes }
 }
 
 # is_shown = "the target day arrived and the GUI hasn't paused yet". The effect clears it.

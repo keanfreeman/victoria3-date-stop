@@ -33,12 +33,19 @@
 			visible = "[GetVariableSystem.Exists('dsm_panel_open')]"
 			parentanchor = top|right
 			position = { -10 160 }
-			size = { 380 350 }
+			size = { 380 440 }
 			using = clickthrough_blocker
 			alwaystransparent = no
 
 			background = {
 				using = default_background
+			}
+
+			# Set up the picker whenever the panel appears. The open flag is GUI
+			# state that survives loading another game, so the clock button may never be clicked.
+			state = {
+				name = _show
+				on_start = "[GetScriptedGui('dsm_open_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 			}
 
 			flowcontainer = {
@@ -75,10 +82,35 @@
 					button_standard = { size = { 84 24 } text = "DSM_YEARS" tooltip = "DSM_FILL_TOOLTIP" onclick = "[GetScriptedGui('dsm_fill_years_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]" }
 				}
 
+				### Reason and repeat
+				flowcontainer = {
+					direction = horizontal
+					spacing = 6
+					text_single = { text = "DSM_REASON_LABEL" minimumsize = { 60 0 } parentanchor = vcenter }
+					button_standard = {
+						size = { 250 24 }
+						text = "DSM_REASON_BUTTON"
+						tooltip = "DSM_REASON_TOOLTIP"
+						onclick = "[GetVariableSystem.Toggle('dsm_reason_open')]"
+					}
+					button_icon_cancel = {
+						size = { 26 26 }
+						parentanchor = vcenter
+						tooltip = "DSM_REASON_CLEAR_TOOLTIP"
+						enabled = "[GetScriptedGui('dsm_has_reason_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+						onclick = "[GetScriptedGui('dsm_set_reason_0_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+					}
+				}
+				#@INCLUDE gui_repeat_row.gui
+
 				### Status
 				text_single = {
 					visible = "[GetScriptedGui('dsm_armed_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text = "DSM_STATUS_ARMED"
+				}
+				text_single = {
+					visible = "[GetScriptedGui('dsm_armed_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+					text = "DSM_STATUS_REASON"
 				}
 				text_single = {
 					visible = "[Not( GetScriptedGui('dsm_armed_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) )]"
@@ -98,9 +130,10 @@
 					}
 					button_standard = {
 						size = { 90 26 }
-						text = "DSM_CANCEL"
-						enabled = "[GetScriptedGui('dsm_cancel_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
-						onclick = "[GetScriptedGui('dsm_cancel_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+						text = "DSM_CLEAR"
+						tooltip = "DSM_CLEAR_TOOLTIP"
+						enabled = "[GetScriptedGui('dsm_clear_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+						onclick = "[GetScriptedGui('dsm_clear_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					}
 					button_standard = {
 						size = { 90 26 }

@@ -20,11 +20,15 @@ date_stop.1 = {
 			dsm_compute_today = yes
 			if = {
 				limit = { var:dsm_today >= var:dsm_armed_target }
-				dsm_disarm = yes
-				remove_variable = dsm_ticking
+				dsm_fire = yes
 				# Picked up by the auto-pause widget in gui/timemanip.gui
 				set_variable = dsm_pause_pending
 				trigger_event = { id = date_stop.2 days = 0 popup = yes }
+				# Repeating: keep checking for the next date.
+				if = {
+					limit = { has_variable = dsm_ticking }
+					trigger_event = { id = date_stop.1 days = 1 }
+				}
 			}
 			else = {
 				trigger_event = { id = date_stop.1 days = 1 }

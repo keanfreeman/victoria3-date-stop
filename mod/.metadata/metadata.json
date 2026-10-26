@@ -1,7 +1,7 @@
 {
   "name": "Date Stop",
   "id": "date_stop_mod",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "supported_game_version": "1.13.*",
   "short_description": "Pick a future date and the game pauses automatically when it arrives.",
   "tags": [

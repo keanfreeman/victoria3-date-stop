@@ -1,0 +1,9 @@
+flowcontainer = {
+	direction = horizontal
+	spacing = 4
+	text_single = { text = "DSM_REPEAT_LABEL" minimumsize = { 60 0 } parentanchor = vcenter }
+	button_standard = { size = { 68 24 } text = "DSM_REPEAT_0" tooltip = "DSM_REPEAT_TOOLTIP" enabled = "[Not( GetScriptedGui('dsm_repeat_is_0_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) )]" onclick = "[GetScriptedGui('dsm_set_repeat_0_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]" }
+	button_standard = { size = { 68 24 } text = "DSM_REPEAT_1" tooltip = "DSM_REPEAT_TOOLTIP" enabled = "[Not( GetScriptedGui('dsm_repeat_is_1_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) )]" onclick = "[GetScriptedGui('dsm_set_repeat_1_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]" }
+	button_standard = { size = { 68 24 } text = "DSM_REPEAT_2" tooltip = "DSM_REPEAT_TOOLTIP" enabled = "[Not( GetScriptedGui('dsm_repeat_is_2_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) )]" onclick = "[GetScriptedGui('dsm_set_repeat_2_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]" }
+	button_standard = { size = { 68 24 } text = "DSM_REPEAT_3" tooltip = "DSM_REPEAT_TOOLTIP" enabled = "[Not( GetScriptedGui('dsm_repeat_is_3_sgui').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End ) )]" onclick = "[GetScriptedGui('dsm_set_repeat_3_sgui').Execute( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]" }
+}
